@@ -25,57 +25,76 @@ class Isentropic():
 
 
 class LPRE():
-    def __init__(self, fuel, oxidiser, chamber_pressure, mixture_ratio, mass_flow, expansion_ratio, contraction_ratio, divergence_angle, L_star):
-        self.chamber_pressure = chamber_pressure
-        self.mixture_ratio = mixture_ratio
-        self.mass_flow = mass_flow
-        self.expansion_ratio = expansion_ratio
-        self.fuel_mass_flow = mass_flow / (1+mixture_ratio)
-        self.ox_mass_flow = mass_flow - self.fuel_mass_flow
-        self.fuel = fuel
-        self.ox = oxidiser
-        self.divergence_angle = divergence_angle
-        self.L_star = L_star
-        self.contraction_ratio = contraction_ratio
-
-        # get hot gas properties from CEA
-        self.cea = CEA(fuel, oxidiser, self.chamber_pressure)
-        self.cea.metric_cea_output('throat', self.mixture_ratio, self.expansion_ratio)
+	def __init__(self, fuel, oxidiser, chamber_pressure, expansion_ratio, contraction_ratio, divergence_angle, L_star, thrust, mixture_ratio):
+		self.chamber_pressure  = chamber_pressure
+		self.expansion_ratio   = expansion_ratio
+		self.fuel              = fuel
+		self.oxidiser          = oxidiser
+		self.divergence_angle  = divergence_angle
+		self.L_star            = L_star
+		self.contraction_ratio = contraction_ratio
+		self.mixture_ratio     = mixture_ratio
+		self.thrust            = thrust
+		self.mass_flow         = 0.03
+		self.R   			   = 8314.5							# universal gas constant J/g
 
 
-    def get_efficiency(self):
-        eta_nozzle = np.sin(self.divergence_angle) / self.divergence_angle
-        eta_combustion = 0.97
-        self.eta = eta_combustion * eta_nozzle
-
-
-    def get_throat_area(self):
-        g = self.cea.gamma
-        V = np.sqrt(g * ((1+g)/2) ** ((1+g)/(1-g)))
-        R_a = 8314.5
-
-        self.throat_area = self.mass_flow * np.sqrt(R_a / self.cea.MW * self.cea.Tc) / V / self.chamber_pressure
-        self.throat_diameter = 2 * np.sqrt(self.throat_area/np.pi)
-        self.exit_area = self.expansion_ratio * self.throat_area
-        self.exit_diameter = 2 * np.sqrt(self.exit_area/np.pi)
+	def get_gas_properties(self):
+		# get hot gas properties from CEA
+		self.cea = CEA(self.fuel, self.oxidiser, self.chamber_pressure)
+		self.cea.metric_cea_output('throat', self.mixture_ratio, self.expansion_ratio)
 		
-        V_c = self.L_star * self.throat_area
-        # assuming converging section is 15% of chamber volume 
-        self.chamber_area = self.contraction_ratio * self.throat_area
-        self.chamber_diameter = 2 * np.sqrt(self.chamber_area/np.pi)
-        self.L_cyl = 0.85 * V_c / self.chamber_area
-	
-    def get_thrust(self, ambient_pressure):
-        local = Isentropic(self.chamber_pressure, self.cea.Tc, self.cea.gamma)
-        self.get_throat_area()
-        self.get_efficiency()
+		self.V = np.sqrt(self.cea.gamma * ((1+self.cea.gamma)/2) ** ((1+self.cea.gamma)/(1-self.cea.gamma)))
 
-        m_exit = local.mach(self.expansion_ratio)
-        p_exit = local.pressure(m_exit)
-        T_exit = local.temperature(m_exit)
-        v_exit = m_exit * np.sqrt(self.cea.gamma * 8314.5 / self.cea.MW * T_exit)
-        self.isp = self.eta * v_exit / 9.80665
-        self.thrust = self.eta * (self.mass_flow * v_exit + (p_exit - ambient_pressure) * self.exit_area)
+		# isentropic gas object
+		self.static = Isentropic(self.chamber_pressure, self.cea.Tc, self.cea.gamma)
+
+	def get_efficiency(self):
+		# basic divergence efficiency for rocket nozzles
+		eta_nozzle = np.sin(self.divergence_angle) / self.divergence_angle
+		# assumed combustion efficency of 1
+		self.eta = eta_nozzle
+
+
+	def get_throat_area(self):
+		# basic chamber geometry
+		self.throat_area = self.mass_flow * np.sqrt(self.R / self.cea.MW * self.cea.Tc) / self.V / self.chamber_pressure
+		self.throat_diameter = 2 * np.sqrt(self.throat_area/np.pi)
+		self.exit_area = self.expansion_ratio * self.throat_area
+		self.exit_diameter = 2 * np.sqrt(self.exit_area/np.pi)
+		
+		V_c = self.L_star * self.throat_area
+		# assuming converging section is 15% of chamber volume 
+		self.chamber_area = self.contraction_ratio * self.throat_area
+		self.chamber_diameter = 2 * np.sqrt(self.chamber_area/np.pi)
+		self.L_cyl = 0.85 * V_c / self.chamber_area
+
+
+	def claculate(self, ambient_pressure):
+		self.get_gas_properties()
+		self.get_efficiency()
+		
+		# exist gas properties
+		m_exit = self.static.mach(self.expansion_ratio)
+		p_exit = self.static.pressure(m_exit)
+		T_exit = self.static.temperature(m_exit)
+
+		# exsit velocity and Isp
+		self.v_exit = m_exit * np.sqrt(self.cea.gamma * 8314.5 / self.cea.MW * T_exit)
+		self.isp = self.eta * self.v_exit / 9.80665
+
+		def func(mass_flow):
+			# optimisation function for estimating mass flow for a given thrust
+			throat_area      = mass_flow * np.sqrt(self.R / self.cea.MW * self.cea.Tc) / self.V / self.chamber_pressure
+			exit_area        = self.expansion_ratio * throat_area
+			estimated_thrust = self.eta * (self.mass_flow * self.v_exit + (p_exit - ambient_pressure) * exit_area)
+			
+			return abs(estimated_thrust - self.thrust)
+		
+		
+		self.mass_flow = scipy.optimize.fsolve(func, 0.1)
+		self.get_throat_area()
+
 
 
 if __name__ == '__main__':
@@ -92,22 +111,15 @@ if __name__ == '__main__':
 	L_star = 1.2
 	
 
-	def func(m_dot):
-		engine = LPRE(fuel, ox, Pc, MR, m_dot, ER, CR, phi_div, L_star)
-		engine.get_thrust(P_amb)
-		
-		return (engine.thrust - target_thrust)
+	engine = LPRE(fuel, ox, Pc, ER, CR, phi_div, L_star, target_thrust, MR)
+	engine.claculate(P_amb)
 
-	m_dot = scipy.optimize.fsolve(func, 18e-3)
 	
-
-	engine = LPRE(fuel, ox, Pc, MR, m_dot, ER, CR, phi_div, L_star)
-	engine.get_thrust(P_amb)
 	print('Thrust	     ', engine.thrust, ' N')
-	print('mass flow     ', m_dot, ' kg/s')
+	print('mass flow     ', engine.mass_flow, ' kg/s')
 	print('c* efficiency ', engine.eta)
 	print('Dt            ', engine.throat_diameter*1000, ' mm')
 	print('Dc            ', engine.chamber_diameter*1000, ' mm')
 	print('De            ', engine.exit_diameter*1000, ' mm')
 	print('Lcyl          ', engine.L_cyl*1000, ' mm')
-     
+	 
