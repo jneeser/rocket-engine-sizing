@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.optimize 
 
-from CEAClass import CEA 
+from CEA import CEA 
 import PropLibrary as pl
 
 
