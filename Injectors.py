@@ -239,10 +239,9 @@ if __name__ == '__main__':
 
     n_holes_ox = 16
     n_holes_fuel = 4
-    dp = 4e5
+    dp = 2e5
     m_dot_fuel = 0.094
     m_dot_ox = 0.528
-    m_dot = m_dot_fuel + m_dot_ox
 
 
     liq_inj = LiquidInjector(['h2o2', 'h2o'], [0.85, 0.15], 288, 20e5+dp, 2e-3, m_dot_ox/n_holes_ox, dp, np.pi/6)
@@ -253,7 +252,10 @@ if __name__ == '__main__':
     liq_inj.injector()
     print(liq_inj.diameter*1000)
 
-    liq_inj = LiquidInjector(['h2o2', 'h2o'], [0.85, 0.15], 288, 20e5+dp, 2e-3, m_dot*0.25/12, dp, 0)
+
+    m_dot = 0.056
+
+    liq_inj = LiquidInjector(['CH6N2'], [1], 288, 20e5+dp, 2e-3, m_dot*0.33/8, dp, 0)
     liq_inj.injector()
     print(liq_inj.diameter*1000)
     print(liq_inj.velocity)

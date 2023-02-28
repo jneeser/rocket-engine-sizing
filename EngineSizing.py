@@ -35,7 +35,7 @@ class LPRE():
 		self.contraction_ratio = contraction_ratio
 		self.mixture_ratio     = mixture_ratio
 		self.thrust            = thrust
-		self.mass_flow         = 0.03
+		self.mass_flow         = 0.622
 		self.R   			   = 8314.5							# universal gas constant J/g
 
 
@@ -58,6 +58,8 @@ class LPRE():
 
 	def get_throat_area(self):
 		# basic chamber geometry
+		self.get_gas_properties()
+
 		self.throat_area = self.mass_flow * np.sqrt(self.R / self.cea.MW * self.cea.Tc) / self.V / self.chamber_pressure
 		self.throat_diameter = 2 * np.sqrt(self.throat_area/np.pi)
 		self.exit_area = self.expansion_ratio * self.throat_area
@@ -80,46 +82,47 @@ class LPRE():
 		T_exit = self.static.temperature(m_exit)
 
 		# exsit velocity and Isp
-		self.v_exit = m_exit * np.sqrt(self.cea.gamma * 8314.5 / self.cea.MW * T_exit)
+		self.v_exit = m_exit * np.sqrt(self.cea.gamma * self.R / self.cea.MW * T_exit)
 		self.isp = self.eta * self.v_exit / 9.80665
-
+		
 		def func(mass_flow):
 			# optimisation function for estimating mass flow for a given thrust
 			throat_area      = mass_flow * np.sqrt(self.R / self.cea.MW * self.cea.Tc) / self.V / self.chamber_pressure
 			exit_area        = self.expansion_ratio * throat_area
-			estimated_thrust = self.eta * (self.mass_flow * self.v_exit + (p_exit - ambient_pressure) * exit_area)
+			estimated_thrust = self.eta * (mass_flow * self.v_exit + (p_exit - ambient_pressure) * exit_area)
 			
-			return abs(estimated_thrust - self.thrust)
+			return estimated_thrust - self.thrust
 		
 		
-		self.mass_flow = scipy.optimize.fsolve(func, 0.1)
-		self.get_throat_area()
+		self.mass_flow = scipy.optimize.fsolve(func, 0.001)
+		self.get_throat_area()	
 
 
 
 if __name__ == '__main__':
 
 	target_thrust = 200				# N
-	fuel = pl.HIP11
-	ox = pl.peroxide98
-	Pc = 10e5						# Pa
-	MR = 3.8						
-	ER = 30
-	CR = 14
-	phi_div = 15 * np.pi/180
-	P_amb = 10 					    # Pa
-	L_star = 1.2
+	fuel    = 'MMH'
+	ox      = 'N2O4'
+	Pc      = 10e5						# Pa
+	MR      = 1.7		
+	ER      = 330
+	CR      = 8
+	phi_div = np.radians(15)
+	P_amb   = 1 					    # Pa
+	L_star  = 0.5
 	
 
 	engine = LPRE(fuel, ox, Pc, ER, CR, phi_div, L_star, target_thrust, MR)
 	engine.claculate(P_amb)
 
 	
-	print('Thrust	     ', engine.thrust, ' N')
-	print('mass flow     ', engine.mass_flow, ' kg/s')
-	print('c* efficiency ', engine.eta)
-	print('Dt            ', engine.throat_diameter*1000, ' mm')
-	print('Dc            ', engine.chamber_diameter*1000, ' mm')
-	print('De            ', engine.exit_diameter*1000, ' mm')
-	print('Lcyl          ', engine.L_cyl*1000, ' mm')
+	print('Thrust	      ', engine.thrust, ' N')
+	print('Isp           ', np.round(engine.isp, 3), ' s')
+	print('mass flow     ', np.round(engine.mass_flow, 3), ' kg/s')
+	print('c* efficiency ', np.round(engine.eta, 3))
+	print('Dt            ', np.round(engine.throat_diameter*1000, 3), ' mm')
+	print('Dc            ', np.round(engine.chamber_diameter*1000, 3), ' mm')
+	print('De            ', np.round(engine.exit_diameter*1000, 3), ' mm')
+	print('Lcyl          ', np.round(engine.L_cyl*1000, 3), ' mm')
 	 
