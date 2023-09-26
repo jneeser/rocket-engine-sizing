@@ -127,6 +127,8 @@ class RocketMotor():
 
     def noise_power(self):
         self.P_noise       = 0.5 * self.scaling_factor * self.exhaust_velocity * self.thrust
+
+        print(0.5 * self.exhaust_velocity * self.thrust * 0.00135962)
         self.max_noise_lvl = 10 * np.log10(self.P_noise * 1e12)
 
     def noise_distance(self, distance):
@@ -154,7 +156,7 @@ class RocketMotor():
                 self.sound_levels[self.n_grid-1-i][j] = self.sound_levels[i][j]
 
         #print(self.noise_direction(0, 1))
-        print(self.noise_direction(np.pi/2, 2))
+        #print(self.noise_direction(np.pi/2, 2))
 
 def validation():
     # tuning of the model constant using test data of three solid rocket motors
@@ -180,8 +182,8 @@ def validation():
             
 
 if __name__ == "__main__":
-    thrust = 1200
-    exhaust_velocity = 2183
+    thrust = 10000
+    exhaust_velocity = 3000
 
     sound = RocketMotor(thrust, exhaust_velocity, scaling_factor=0.0012)
     sound.noise_power()
