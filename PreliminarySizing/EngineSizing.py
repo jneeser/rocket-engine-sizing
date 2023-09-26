@@ -97,16 +97,16 @@ class LPRE():
 
 if __name__ == '__main__':
 
-	target_thrust = 200						# N
-	fuel    = pl.TMPDA						# CEA fuel or custom from PropLibrary.py
-	ox      = pl.peroxide85					# CEA oxidiser or custom from PropLibrary.py
-	Pc      = 10e5							# Chamber pressure in Pa
-	MR      = 4.8							# Mixture ratio (O/F)
-	ER      = 8								# expansion ratio
-	CR      = 8								# contraction ratio
+	target_thrust = 53						# N
+	fuel    = 'Isopropanol'					# CEA fuel or custom from PropLibrary.py
+	ox      = pl.peroxide95					# CEA oxidiser or custom from PropLibrary.py
+	Pc      = 9e5							# Chamber pressure in Pa
+	MR      = 4.4							# Mixture ratio (O/F)
+	ER      = 2								# expansion ratio
+	CR      = 9.5								# contraction ratio
 	phi_div = np.radians(15)				# divergence angle of nozzle
 	Pamb    = 101325 					    # Pa
-	L_star  = 1
+	L_star  = 0.6
 	
 
 	engine = LPRE(fuel, ox, Pc, ER, CR, phi_div, L_star, target_thrust, MR, Pamb)
@@ -116,11 +116,19 @@ if __name__ == '__main__':
 	print('Thrust         ', engine.thrust, ' N')
 	print('Isp            ', engine.cea.ispAmb, 'NOTE Psep or Pe given in Psi')
 	print('mass flow      ', np.round(engine.mass_flow, 4), ' kg/s')
-	print('ox mass flow   ', np.round(engine.mass_flow / (MR + 1), 4), ' kg/s')
-	print('fuel mass flow ', np.round(- engine.mass_flow / (MR + 1) + engine.mass_flow, 4), ' kg/s')
+	print('fuel mass flow   ', np.round(engine.mass_flow / (MR + 1), 5), ' kg/s')
+	print('ox mass flow ', np.round(- engine.mass_flow / (MR + 1) + engine.mass_flow, 4), ' kg/s')
 	print('c*             ', np.round(engine.c_star, 3), ' m/s')
 	print('Dt             ', np.round(engine.throat_diameter*1000, 3), ' mm')
 	print('Dc             ', np.round(engine.chamber_diameter*1000, 3), ' mm')
 	print('De             ', np.round(engine.exit_diameter*1000, 3), ' mm')
 	print('Lcyl           ', np.round(engine.L_cyl*1000, 3), ' mm')
 	 
+
+	V = 31.2 / 3600 	# m^3/s
+	rho_avg = 1000
+	V_actual = engine.mass_flow / rho_avg
+
+	print(V_actual*1e3)
+	print(V*1e3)
+	print((- engine.mass_flow / (MR + 1) + engine.mass_flow)/(1400*(6.4e-3)**2/4*np.pi))

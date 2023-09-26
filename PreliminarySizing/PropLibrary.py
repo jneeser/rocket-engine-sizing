@@ -7,7 +7,7 @@ from rocketcea.cea_obj import CEA_Obj, add_new_fuel, add_new_oxidizer, add_new_p
 # Hydrogen Peroxide  
 peroxide98 = rocketcea.blends.newOxBlend(oxL=['H2O2', 'H2O'], oxPcentL=[98,2]) 
 peroxide96 = rocketcea.blends.newOxBlend(oxL=['H2O2', 'H2O'], oxPcentL=[96,4]) 
-peroxide94 = rocketcea.blends.newOxBlend(oxL=['H2O2', 'H2O'], oxPcentL=[94,6]) 
+peroxide95 = rocketcea.blends.newOxBlend(oxL=['H2O2', 'H2O'], oxPcentL=[95,5]) 
 peroxide90 = rocketcea.blends.newOxBlend(oxL=['H2O2', 'H2O'], oxPcentL=[90,10]) 
 peroxide85 = rocketcea.blends.newOxBlend(oxL=['H2O2', 'H2O'], oxPcentL=[85,15]) 
 
