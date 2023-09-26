@@ -233,29 +233,54 @@ def ohnesorge_number(injector, n_holes, massflow, fluid_mass_fractions, fluid_mo
     plt.xlabel('number of holes [-]')
     plt.ylabel('Weber Number [-]')
     plt.show()
-    
+
+
+def gas_liquid_tangential_injection(injector, rho_gas, m_dot_gas, chamber_diameter):
+    '''
+    based on https://doi.org/10.1016/j.ijmultiphaseflow.2022.104265 
+    determines penetration length of liquid jet perpendicular to core gas flow 
+    Assumes chamber centerline as penettration height and calculates penetration length
+    for that y coordinate
+    INPUTS 
+        injector [injector object]: 
+        x_coordiate [float]:             downstream length
+        rho_gas [float]:                 combustion gas density 
+        m_dot_gas [float]:               gas mass flow
+        chamber_diameter [float]:        combustion chamber diameter         
+    '''
+    # momentum flux ratio J
+    A_chamber = np.pi * chamber_diameter**2 / 4
+    v_gas = m_dot_gas / (rho_gas * A_chamber)
+    J = injector.fluid.rho * injector.velocity**2 / (rho_gas * v_gas**2)
+
+    # penetration depth
+    x = chamber_diameter * (0.5/3.14 * J**(-0.41))**(1/0.27)
+
+    return x
+
+
 
 if __name__ == '__main__':
 
-    n_holes_ox = 16
-    n_holes_fuel = 4
-    dp = 2e5
-    m_dot_fuel = 0.094
-    m_dot_ox = 0.528
+    n_holes_fuel = 2
+    dp = 1e5
+    m_dot_fuel = 5e-3
+    injector_length = 2e-3
+    upstream_pressure = 9e5
+    upstream_temperature = 293 
+    injection_angle = 0                            
 
-
-    liq_inj = LiquidInjector(['h2o2', 'h2o'], [0.85, 0.15], 288, 20e5+dp, 2e-3, m_dot_ox/n_holes_ox, dp, np.pi/6)
+    liq_inj = LiquidInjector(['Isopropylalcohol'], [1], upstream_temperature, upstream_pressure, injector_length, m_dot_fuel/n_holes_fuel, dp, injection_angle)
     liq_inj.injector()
-    print(liq_inj.diameter*1000)
-
-    liq_inj = LiquidInjector(['c2h5oh'], [1], 288, 20e5+2e5, 2e-3, 0.0047/2, 2e5, np.pi/6)
-    liq_inj.injector()
-    print(liq_inj.diameter*1000)
-
-
-    m_dot = 0.056
-
-    liq_inj = LiquidInjector(['CH6N2'], [1], 288, 20e5+dp, 2e-3, m_dot*0.33/8, dp, 0)
-    liq_inj.injector()
+    print(liq_inj.fluid.rho)
     print(liq_inj.diameter*1000)
     print(liq_inj.velocity)
+    print(liq_inj.mu)
+
+    # core gas flow properties
+    rho_gas = 2.337             # kg/m^3
+    chamber_diameter = 20e-3    # m
+    m_dot_gas = 21.73e-3           # kg/s
+
+    injection_length = gas_liquid_tangential_injection(liq_inj, rho_gas, m_dot_gas, chamber_diameter)
+    print(injection_length * 1000)
