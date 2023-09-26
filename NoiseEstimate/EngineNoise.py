@@ -182,8 +182,8 @@ def validation():
             
 
 if __name__ == "__main__":
-    thrust = 10000
-    exhaust_velocity = 3000
+    thrust = 10000                      # [N]
+    exhaust_velocity = 3000             # [m/s]
 
     sound = RocketMotor(thrust, exhaust_velocity, scaling_factor=0.0012)
     sound.noise_power()
