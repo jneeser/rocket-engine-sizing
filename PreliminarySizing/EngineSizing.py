@@ -26,7 +26,7 @@ class Isentropic():
 
 
 class LPRE():
-	def __init__(self, fuel, oxidiser, chamber_pressure, expansion_ratio, contraction_ratio, divergence_angle, L_star, thrust, mixture_ratio, Pamb):
+	def __init__(self, fuel, oxidiser, chamber_pressure, expansion_ratio, contraction_ratio, contraction_angle, divergence_angle, L_star, thrust, mixture_ratio, Pamb):
 		self.chamber_pressure  = chamber_pressure
 		self.expansion_ratio   = expansion_ratio
 		self.fuel              = fuel
@@ -34,6 +34,7 @@ class LPRE():
 		self.divergence_angle  = divergence_angle
 		self.L_star            = L_star
 		self.contraction_ratio = contraction_ratio
+		self.contraction_angle = contraction_angle
 		self.mixture_ratio     = mixture_ratio
 		self.thrust            = thrust
 		self.ambient_pressure  = Pamb
@@ -58,15 +59,20 @@ class LPRE():
 
 	def get_chamber_dimensions(self):
 		self.throat_area = self.mass_flow * np.sqrt(self.R / self.cea.MW * self.cea.Tc) / self.V / self.chamber_pressure
-		self.throat_diameter = 2 * np.sqrt(self.throat_area/np.pi)
+		self.D_t = 2 * np.sqrt(self.throat_area/np.pi)
 		self.exit_area = self.expansion_ratio * self.throat_area
 		self.exit_diameter = 2 * np.sqrt(self.exit_area/np.pi)
 		
-		V_c = self.L_star * self.throat_area
-		# assuming converging section is 15% of chamber volume 
+		V_c = self.L_star * self.throat_area                # chamber volume
+
 		self.chamber_area = self.contraction_ratio * self.throat_area
-		self.chamber_diameter = 2 * np.sqrt(self.chamber_area/np.pi)
-		self.L_cyl = 0.85 * V_c / self.chamber_area
+		self.D_c = 2 * np.sqrt(self.chamber_area/np.pi)
+
+		# determine chamber volume of the contracting section
+		L_conv = (self.D_c/2 - self.D_t/2) / np.tan(self.contraction_angle)
+		V_conv = (1/3) * np.pi * L_conv * ((self.D_t/2)**2 + self.D_t/2 * self.D_c/2 + (self.D_c/2)**2)
+	 
+		self.L_cyl = (V_c - V_conv) / self.chamber_area
 
 
 	def claculate_m_dot(self):
@@ -98,18 +104,19 @@ class LPRE():
 if __name__ == '__main__':
 
 	target_thrust = 40						# N
-	fuel    = pl.TMPDA				# CEA fuel or custom from PropLibrary.py
-	ox      = pl.peroxide95					# CEA oxidiser or custom from PropLibrary.py
-	Pc      = 15e5							# Chamber pressure in Pa
-	MR      = 6							# Mixture ratio (O/F)
-	ER      = 3								# expansion ratio
-	CR      = 9.5								# contraction ratio
-	phi_div = np.radians(15)				# divergence angle of nozzle
-	Pamb    = 101325 					    # Pa
-	L_star  = 1
+	fuel     = pl.TMPDA				# CEA fuel or custom from PropLibrary.py
+	ox       = pl.peroxide95					# CEA oxidiser or custom from PropLibrary.py
+	Pc       = 15e5							# Chamber pressure in Pa
+	MR       = 6							# Mixture ratio (O/F)
+	ER       = 3								# expansion ratio
+	CR       = 9.5								# contraction ratio
+	phi_div  = np.radians(15)				# divergence angle of nozzle
+	phi_conv = np.radians(30)				# convergence angle
+	Pamb     = 101325 					    # Pa
+	L_star   = 1							# m
 	
 
-	engine = LPRE(fuel, ox, Pc, ER, CR, phi_div, L_star, target_thrust, MR, Pamb)
+	engine = LPRE(fuel, ox, Pc, ER, CR, phi_conv, phi_div, L_star, target_thrust, MR, Pamb)
 	engine.claculate_m_dot()
 
 	
@@ -119,8 +126,8 @@ if __name__ == '__main__':
 	print('fuel mass flow   ', np.round(engine.mass_flow / (MR + 1), 5), ' kg/s')
 	print('ox mass flow ', np.round(- engine.mass_flow / (MR + 1) + engine.mass_flow, 4), ' kg/s')
 	print('c*             ', np.round(engine.c_star, 3), ' m/s')
-	print('Dt             ', np.round(engine.throat_diameter*1000, 3), ' mm')
-	print('Dc             ', np.round(engine.chamber_diameter*1000, 3), ' mm')
+	print('Dt             ', np.round(engine.D_t*1000, 3), ' mm')
+	print('Dc             ', np.round(engine.D_c*1000, 3), ' mm')
 	print('De             ', np.round(engine.exit_diameter*1000, 3), ' mm')
 	print('Lcyl           ', np.round(engine.L_cyl*1000, 3), ' mm')
 
