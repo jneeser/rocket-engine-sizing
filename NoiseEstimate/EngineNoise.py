@@ -83,7 +83,6 @@ class PressureVessel():
                 
                 self.sound_levels[i][j] = 20 * np.log(dP/20e-6)
                 self.sound_levels[self.n_grid-1-i][j] = self.sound_levels[i][j]
-        print(20 * np.log((0.95 * self.M_tnt**(1/3) + 3.9 * self.M_tnt**(2/3) + 13 * self.M_tnt)/20e-6))
 
 
 class ExplosiveCharge():
@@ -126,10 +125,10 @@ class RocketMotor():
         self.max_distance     = max_distance                    # maximum resolved distance from the motor [m]
 
     def noise_power(self):
-        self.P_noise       = 0.5 * self.scaling_factor * self.exhaust_velocity * self.thrust
-
-        print(0.5 * self.exhaust_velocity * self.thrust * 0.00135962)
+        self.P_noise       = 249.0 #0.5 * self.scaling_factor * self.exhaust_velocity * self.thrust #249.2
+        print(self.P_noise)
         self.max_noise_lvl = 10 * np.log10(self.P_noise * 1e12)
+        print(self.max_noise_lvl)
 
     def noise_distance(self, distance):
         return 10 * np.log10(self.P_noise * 1e12 / (2 * np.pi * distance**2))
@@ -155,6 +154,8 @@ class RocketMotor():
                 self.sound_levels[i][j] = self.noise_direction(self.angles[i], self.radii[j])
                 self.sound_levels[self.n_grid-1-i][j] = self.sound_levels[i][j]
 
+        idx = np.where(self.sound_levels[int(self.n_grid/6)] > 110)[0]
+        print(self.radii[idx])
         #print(self.noise_direction(0, 1))
         #print(self.noise_direction(np.pi/2, 2))
 
@@ -182,8 +183,8 @@ def validation():
             
 
 if __name__ == "__main__":
-    thrust = 10000                      # [N]
-    exhaust_velocity = 3000             # [m/s]
+    thrust = 29.01                      # [N]
+    exhaust_velocity = 1143.66             # [m/s]
 
     sound = RocketMotor(thrust, exhaust_velocity, scaling_factor=0.0012)
     sound.noise_power()
@@ -199,7 +200,7 @@ if __name__ == "__main__":
     #sound = ExplosiveCharge(0.01, 0.43)
     #sound.noise_distribution()
 
-    im = Images(sound, 'FellowshipField.jpg', 1, 1, 'Figures', name='SparrowNoise')
+    im = Images(sound, 'resonance_heating.png', 1, 1, 'Figures', name='resonance_heating')
     im.contour_plot()
 
     
