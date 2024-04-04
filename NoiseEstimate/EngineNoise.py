@@ -202,6 +202,8 @@ if __name__ == "__main__":
     burst.TNT_equivalent()
     burst.noise_distribution()
 
+    # TODO check your results against https://sengpielaudio.com/PermissibleExposureTime.htm for permissible noise levels over time
+
 
     contour_plot(thrust, 'Figures', 'thrust', save_fig=True)
     contour_plot(burst, 'Figures', 'burst', save_fig=True)
