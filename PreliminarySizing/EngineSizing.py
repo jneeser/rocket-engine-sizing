@@ -103,17 +103,17 @@ class LPRE():
 
 if __name__ == '__main__':
 
-	target_thrust = 40						# N
-	fuel     = pl.TMPDA				# CEA fuel or custom from PropLibrary.py
-	ox       = pl.peroxide95					# CEA oxidiser or custom from PropLibrary.py
-	Pc       = 15e5							# Chamber pressure in Pa
-	MR       = 6							# Mixture ratio (O/F)
-	ER       = 3								# expansion ratio
-	CR       = 9.5								# contraction ratio
+	target_thrust = 3000						# N
+	fuel     = pl.methanol90				# CEA fuel or custom from PropLibrary.py
+	ox       = 'N2O'					# CEA oxidiser or custom from PropLibrary.py
+	Pc       = 20e5							# Chamber pressure in Pa
+	MR       = 3.5							# Mixture ratio (O/F)
+	ER       = 6								# expansion ratio
+	CR       = 10								# contraction ratio
 	phi_div  = np.radians(15)				# divergence angle of nozzle
 	phi_conv = np.radians(30)				# convergence angle
 	Pamb     = 101325 					    # Pa
-	L_star   = 1							# m
+	L_star   = 1.5							# m
 	
 
 	engine = LPRE(fuel, ox, Pc, ER, CR, phi_conv, phi_div, L_star, target_thrust, MR, Pamb)

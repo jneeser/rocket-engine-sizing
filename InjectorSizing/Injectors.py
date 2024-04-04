@@ -59,7 +59,7 @@ class GasInjector():
         return 0.5 + 1.2/np.pi*self.inletangle
     
     # from "Liquid Rocket Trhust Chambers" page 52
-    def injector(self, maxiter=100, tol=1e-6):
+    def injector(self, maxiter=100, tol=1e-10):
         if self.gas.phase == 'l':
             raise ValueError("Fluid is not gaseous before injection")
         it = 0 
@@ -262,20 +262,20 @@ def gas_liquid_tangential_injection(injector, rho_gas, m_dot_gas, chamber_diamet
 
 if __name__ == '__main__':
 
-    n_holes_fuel = 2
-    dp = 1e5
-    m_dot_fuel = 5e-3
-    injector_length = 2e-3
+    n_holes_fuel = 1
+    dp = 0.1e5
+    m_dot_fuel = 0.3e-3
+    injector_length = 1e-3
     upstream_pressure = 9e5
     upstream_temperature = 293 
     injection_angle = 0                            
 
-    liq_inj = LiquidInjector(['Isopropylalcohol'], [1], upstream_temperature, upstream_pressure, injector_length, m_dot_fuel/n_holes_fuel, dp, injection_angle)
+    liq_inj = LiquidInjector(['h2o2'], [1], upstream_temperature, upstream_pressure, injector_length, m_dot_fuel/n_holes_fuel, dp, injection_angle)
     liq_inj.injector()
-    print(liq_inj.fluid.rho)
-    print(liq_inj.diameter*1000)
-    print(liq_inj.velocity)
-    print(liq_inj.mu)
+   # print(liq_inj.fluid.rho)
+   # print(liq_inj.diameter*1000)
+    #print(liq_inj.velocity)
+    #print(liq_inj.mu)
 
     # core gas flow properties
     rho_gas = 2.337             # kg/m^3
@@ -283,4 +283,9 @@ if __name__ == '__main__':
     m_dot_gas = 21.73e-3           # kg/s
 
     injection_length = gas_liquid_tangential_injection(liq_inj, rho_gas, m_dot_gas, chamber_diameter)
-    print(injection_length * 1000)
+    #print(injection_length * 1000)
+
+
+    inj = GasInjector('o2', 293.15, 18e5, 3e-3, 14.136e-3, 15e5, 10, 0)
+    inj.injector()
+    print(liq_inj.diameter*1000)

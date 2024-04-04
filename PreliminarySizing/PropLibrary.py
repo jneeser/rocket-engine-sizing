@@ -17,6 +17,13 @@ ethanol90 = rocketcea.blends.newFuelBlend(fuelL=['C2H5OH', 'H2O'], fuelPcentL=[9
 ethanol85 = rocketcea.blends.newFuelBlend(fuelL=['C2H5OH', 'H2O'], fuelPcentL=[85,15]) 
 ethanol80 = rocketcea.blends.newFuelBlend(fuelL=['C2H5OH', 'H2O'], fuelPcentL=[80,20]) 
 
+
+# Methanol water mixes
+# Ethaol water mixtures
+methanol90 = rocketcea.blends.newFuelBlend(fuelL=['CH3OH', 'H2O'], fuelPcentL=[90,10]) 
+methanol85 = rocketcea.blends.newFuelBlend(fuelL=['CH3OH', 'H2O'], fuelPcentL=[85,15]) 
+methanol80 = rocketcea.blends.newFuelBlend(fuelL=['CH3OH', 'H2O'], fuelPcentL=[80,20]) 
+
 # aniline
 card_str = """
 fuel C6H7N(L)  C 6.0   H 7.0    N 1.0  wt%=100

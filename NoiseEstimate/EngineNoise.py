@@ -156,7 +156,7 @@ def contour_plot(noise_source, folder, name, save_fig=False):
     fig.colorbar(cp, label='noise [dB]')
     
     if save_fig:
-        fig.savefig(folder + '/' + name + '.png', dpi = 600)
+        fig.savefig(folder + '/' + name + '.png', dpi = 600, transparent=True)
     else:
         plt.show()
 
@@ -188,19 +188,21 @@ if __name__ == "__main__":
     thrust = 29.01                      # [N]
     exhaust_velocity = 1143.66             # [m/s]
 
-    sound = RocketMotor(thrust, exhaust_velocity, scaling_factor=0.0012)
-    sound.noise_power()
-    sound.noise_distribution()
-    
-    #validation()
+    thrust = RocketMotor(thrust, exhaust_velocity, scaling_factor=0.0012)
+    thrust.noise_power()
+    thrust.noise_distribution()
 
-    #sound = PressureVessel(255e5, 0.000516, 1e5)
-    #sound.TNT_equivalent()
-    #sound.noise_distribution()
+    burst_pressure = 123.5e6            # Pa
+    chamber_radius = 7e-3               # m
+    chamber_length = 7e-2               # m
+    chamber_volume = np.pi * chamber_radius**2 * chamber_length
+    ambient_pressure = 101325           # Pa
+
+    burst = PressureVessel(burst_pressure, chamber_volume, ambient_pressure)
+    burst.TNT_equivalent()
+    burst.noise_distribution()
 
 
-    #sound = ExplosiveCharge(0.01, 0.43)
-    #sound.noise_distribution()
-
-    contour_plot(sound, 'Figures', 'resonance_heating', save_fig=False)
+    contour_plot(thrust, 'Figures', 'thrust', save_fig=True)
+    contour_plot(burst, 'Figures', 'burst', save_fig=True)
 
