@@ -38,7 +38,7 @@ class LPRE():
 		self.mixture_ratio     = mixture_ratio
 		self.thrust            = thrust
 		self.ambient_pressure  = Pamb
-		self.mass_flow         = 0.622
+		self.mass_flow         = 1.0							# dummy input for thrust root finding
 		self.R   			   = 8314.5							# universal gas constant J/mol
 
 		# get hot gas properties from CEA
