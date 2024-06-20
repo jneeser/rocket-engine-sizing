@@ -121,23 +121,12 @@ if __name__ == '__main__':
 
 	
 	print('Thrust         ', engine.thrust, ' N')
-	print('Isp            ', engine.cea.ispAmb, 'NOTE Psep or Pe given in Psi')
+	print('Isp (ambient)  ', engine.cea.ispAmb, 'NOTE Psep or Pe given in Psi')
 	print('mass flow      ', np.round(engine.mass_flow, 4), ' kg/s')
-	print('fuel mass flow   ', np.round(engine.mass_flow / (MR + 1), 5), ' kg/s')
-	print('ox mass flow ', np.round(- engine.mass_flow / (MR + 1) + engine.mass_flow, 4), ' kg/s')
+	print('fuel mass flow ', np.round(engine.mass_flow / (MR + 1), 5), ' kg/s')
+	print('ox mass flow   ', np.round(- engine.mass_flow / (MR + 1) + engine.mass_flow, 4), ' kg/s')
 	print('c*             ', np.round(engine.c_star, 3), ' m/s')
 	print('Dt             ', np.round(engine.D_t*1000, 3), ' mm')
 	print('Dc             ', np.round(engine.D_c*1000, 3), ' mm')
 	print('De             ', np.round(engine.exit_diameter*1000, 3), ' mm')
 	print('Lcyl           ', np.round(engine.L_cyl*1000, 3), ' mm')
-
-	m_dot_f = engine.mass_flow / (MR + 1)
-	m_dot_ox = engine.mass_flow - m_dot_f
-
-	v_dot_f = m_dot_f / 780
-	v_dot_ox = m_dot_ox / 1420
-
-	v_dot = v_dot_f + v_dot_ox
-	m_dot_n2 = v_dot * 23.11
-	print(v_dot)
-	print(m_dot_n2)
